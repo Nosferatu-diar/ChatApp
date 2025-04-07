@@ -7,22 +7,28 @@ import toast from "react-hot-toast";
 interface UseAuthType {
   authUser: AuthUserType | null;
   isLoginLoading: boolean;
+  isRegisterLoading: boolean;
+  imgUploadLoading: boolean;
   signin: (data: FormDataType) => Promise<void>;
   signup: (data: FormDataType) => Promise<void>;
+  updatePhoto: (data: any) => Promise<void>;
   checkUser: () => Promise<void>;
+  logout: () => Promise<void>;
   isCheckingUserLoader: boolean;
 }
 
 export const useAuthStore = create<UseAuthType>((set) => ({
   authUser: null,
   isLoginLoading: false,
+  isRegisterLoading: false,
   isCheckingUserLoader: false,
+  imgUploadLoading: false,
 
   checkUser: async () => {
     set({ isCheckingUserLoader: true });
     try {
       const res = await axiosInstance.get("/auth/check");
-      set({ authUser: res.data.data }); // 1 data => extra
+      set({ authUser: res.data.data });
     } catch (error) {
       if (error instanceof AxiosError) {
         if (
@@ -42,7 +48,9 @@ export const useAuthStore = create<UseAuthType>((set) => ({
     set({ isLoginLoading: true });
     try {
       const res = await axiosInstance.post("/auth/sign-in", data);
-      set({ authUser: res.data.data }); // 1 data => extra
+      console.log(res);
+
+      set({ authUser: res.data.data });
       toast.success("Sign-in completed successfully!");
     } catch (error) {
       if (error instanceof AxiosError) {
@@ -60,10 +68,10 @@ export const useAuthStore = create<UseAuthType>((set) => ({
   },
 
   signup: async (data) => {
-    set({ isLoginLoading: true });
+    set({ isRegisterLoading: true });
     try {
       const res = await axiosInstance.post("/auth/sign-up", data);
-      set({ authUser: res.data.data }); // 1 data => extra
+      set({ authUser: res.data.data });
       toast.success("Sign-up completed successfully!");
     } catch (error) {
       if (error instanceof AxiosError) {
@@ -76,7 +84,49 @@ export const useAuthStore = create<UseAuthType>((set) => ({
         }
       }
     } finally {
-      set({ isLoginLoading: false });
+      set({ isRegisterLoading: false });
+    }
+  },
+
+  updatePhoto: async (data) => {
+    set({ imgUploadLoading: true });
+    try {
+      const res = await axiosInstance.post("/auth/update-photo", data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      set({ authUser: res.data.data });
+      toast.success("Image uploaded successfully!");
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        if (
+          error.response &&
+          error.response.data &&
+          error.response.data.message
+        ) {
+          toast.error(error.response.data.message);
+        }
+      }
+    } finally {
+      set({ imgUploadLoading: false });
+    }
+  },
+  logout: async () => {
+    try {
+      await axiosInstance.post("/auth/logout");
+      set({ authUser: null });
+      toast.success("Logout completed successfully!");
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        if (
+          error.response &&
+          error.response.data &&
+          error.response.data.message
+        ) {
+          toast.error(error.response.data.message);
+        }
+      }
     }
   },
 }));

@@ -12,8 +12,11 @@ const SignIn = () => {
     email: "",
     password: "",
   });
+
   const loginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log("formData", formData);
+
     await signin(formData);
   };
   return (

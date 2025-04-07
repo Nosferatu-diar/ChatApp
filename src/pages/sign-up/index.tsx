@@ -12,19 +12,36 @@ import { useState } from "react";
 import type { FormDataType } from "../../@types";
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
+import toast from "react-hot-toast";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const { signup, isLoginLoading } = useAuthStore();
+  const { signup, isRegisterLoading } = useAuthStore();
   const [formData, setFormData] = useState<FormDataType>({
     email: "",
     password: "",
     fullName: "",
   });
 
+  const validateForm = () => {
+    if (!formData.fullName?.trim()) return toast.error("Full name is required");
+    if (!formData.email.trim()) return toast.error("Email is required");
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      return toast.error("Invalid email format");
+    }
+    if (!formData.password) return toast.error("Password is required");
+    if (formData.password.length < 6) {
+      return toast.error("Password must be at least 6 characters");
+    }
+    return true;
+  };
+
   const loginSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await signup(formData);
+    const validation = validateForm();
+    if (validation === true) {
+      await signup(formData);
+    }
   };
 
   return (
@@ -114,10 +131,10 @@ const SignUp = () => {
             </div>
           </div>
           <button
-            disabled={isLoginLoading}
+            disabled={isRegisterLoading}
             className="btn btn-primary w-full mt-8"
           >
-            {isLoginLoading ? (
+            {isRegisterLoading ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
                 <span>Loading...</span>
