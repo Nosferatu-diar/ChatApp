@@ -9,7 +9,22 @@ export interface AuthUserType {
   email: string;
   fullName: string;
   password: string;
-  profilePic: string;
+  profilePic?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface MessageType {
+  _id: string;
+  senderId: string;
+  receiverId: string;
+  content: string;
   createdAt: string;
   updatedAt: string;
+  image?: string;
+  text?: string;
+}
+
+export interface SendMessagePayload {
+  text: string;
 }

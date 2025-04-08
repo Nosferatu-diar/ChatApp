@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import Home from "./pages/home";
 import SignIn from "./pages/sign-in";
 import SignUp from "./pages/sign-up";
 import { Toaster } from "react-hot-toast";
@@ -10,6 +9,7 @@ import Navbar from "./components/navbar";
 import Profile from "./components/profile";
 import Settings from "./components/settings";
 import { useThemeStore } from "./store/useThemeStore";
+import Home from "./pages/home";
 
 const App = () => {
   const { checkUser, authUser, isCheckingUserLoader } = useAuthStore();
@@ -36,9 +36,7 @@ const App = () => {
         />
         <Route
           path="/sign-in"
-          element={
-            !authUser ? <SignIn /> : <Navigate to={"/sign-in"} replace />
-          }
+          element={!authUser ? <SignIn /> : <Navigate to={"/"} replace />}
         />
         <Route
           path="/sign-up"

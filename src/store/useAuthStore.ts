@@ -3,26 +3,58 @@ import { axiosInstance } from "../lib";
 import type { AuthUserType, FormDataType } from "../@types";
 import { AxiosError } from "axios";
 import toast from "react-hot-toast";
+import { io, Socket } from "socket.io-client";
+
+const BASE_URL = "https://chat-app-bb-tai4.onrender.com/api";
 
 interface UseAuthType {
   authUser: AuthUserType | null;
   isLoginLoading: boolean;
   isRegisterLoading: boolean;
   imgUploadLoading: boolean;
+  isCheckingUserLoader: boolean;
+  onlineUsers: string[] | null;
+  socket: Socket | null;
   signin: (data: FormDataType) => Promise<void>;
   signup: (data: FormDataType) => Promise<void>;
-  updatePhoto: (data: any) => Promise<void>;
+  updatePhoto: (data: FormData) => Promise<void>;
   checkUser: () => Promise<void>;
   logout: () => Promise<void>;
-  isCheckingUserLoader: boolean;
+  connectSocket: () => void;
+  disconnectSocket: () => void;
 }
 
-export const useAuthStore = create<UseAuthType>((set) => ({
+export const useAuthStore = create<UseAuthType>((set, get) => ({
   authUser: null,
   isLoginLoading: false,
   isRegisterLoading: false,
   isCheckingUserLoader: false,
   imgUploadLoading: false,
+  onlineUsers: [],
+  socket: null,
+
+  connectSocket: () => {
+    const { authUser } = get();
+    if (!authUser || get().socket?.connected) return;
+
+    const socket = io(BASE_URL, {
+      query: {
+        userId: authUser._id,
+      },
+    });
+    socket.connect();
+
+    set({ socket: socket });
+
+    socket.on("getOnlineUsers", (userIds: string[]) => {
+      set({ onlineUsers: userIds });
+    });
+  },
+
+  disconnectSocket: () => {
+    const socket = get().socket;
+    if (socket?.connected) socket.disconnect();
+  },
 
   checkUser: async () => {
     set({ isCheckingUserLoader: true });
@@ -112,6 +144,7 @@ export const useAuthStore = create<UseAuthType>((set) => ({
       set({ imgUploadLoading: false });
     }
   },
+
   logout: async () => {
     try {
       await axiosInstance.post("/auth/logout");
