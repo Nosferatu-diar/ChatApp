@@ -14,9 +14,15 @@ const ChatHeader = () => {
           <div className="avatar">
             <div className="size-10 rounded-full relative">
               <img
-                src={selectedUser?.profilePic || "/avatar.png"}
+                src={
+                  selectedUser?.profilePic ||
+                  "https://raw.githubusercontent.com/burakorkmez/fullstack-chat-app/refs/heads/master/frontend/public/avatar.png"
+                }
                 alt={selectedUser?.fullName || "User Avatar"}
               />
+              {onlineUsers!.includes(selectedUser!._id) && (
+                <span className="absolute bottom-0 right-0 size-3 bg-green-500 rounded-full ring-2 ring-zinc-900" />
+              )}
             </div>
           </div>
 
@@ -24,7 +30,7 @@ const ChatHeader = () => {
           <div>
             <h3 className="font-medium">{selectedUser?.fullName}</h3>
             <p className="text-sm text-base-content/70">
-              {selectedUser && onlineUsers?.includes(selectedUser._id)
+              {selectedUser! && onlineUsers?.includes(selectedUser._id)
                 ? "Online"
                 : "Offline"}
             </p>

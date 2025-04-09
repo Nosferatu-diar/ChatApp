@@ -5,7 +5,7 @@ import { AxiosError } from "axios";
 import toast from "react-hot-toast";
 import { io, Socket } from "socket.io-client";
 
-const BASE_URL = "https://chat-app-bb-tai4.onrender.com/api";
+const BASE_URL = "https://chat-app-bb-tai4.onrender.com";
 
 interface UseAuthType {
   authUser: AuthUserType | null;
@@ -34,19 +34,17 @@ export const useAuthStore = create<UseAuthType>((set, get) => ({
   socket: null,
 
   connectSocket: () => {
-    const { authUser } = get();
-    if (!authUser || get().socket?.connected) return;
-
-    const socket = io(BASE_URL, {
+    const { authUser, socket } = get();
+    if (!authUser || socket?.connected) return;
+    const socketIo = io(BASE_URL, {
       query: {
         userId: authUser._id,
+        withCredentials: true,
       },
     });
-    socket.connect();
-
-    set({ socket: socket });
-
-    socket.on("getOnlineUsers", (userIds: string[]) => {
+    socketIo.connect();
+    set({ socket: socketIo });
+    socketIo.on("getOnlineUsers", (userIds: string[]) => {
       set({ onlineUsers: userIds });
     });
   },
@@ -61,6 +59,7 @@ export const useAuthStore = create<UseAuthType>((set, get) => ({
     try {
       const res = await axiosInstance.get("/auth/check");
       set({ authUser: res.data.data });
+      get().connectSocket();
     } catch (error) {
       if (error instanceof AxiosError) {
         if (
@@ -84,6 +83,7 @@ export const useAuthStore = create<UseAuthType>((set, get) => ({
 
       set({ authUser: res.data.data });
       toast.success("Sign-in completed successfully!");
+      get().connectSocket();
     } catch (error) {
       if (error instanceof AxiosError) {
         if (
@@ -105,6 +105,7 @@ export const useAuthStore = create<UseAuthType>((set, get) => ({
       const res = await axiosInstance.post("/auth/sign-up", data);
       set({ authUser: res.data.data });
       toast.success("Sign-up completed successfully!");
+      get().connectSocket();
     } catch (error) {
       if (error instanceof AxiosError) {
         if (
@@ -150,6 +151,7 @@ export const useAuthStore = create<UseAuthType>((set, get) => ({
       await axiosInstance.post("/auth/logout");
       set({ authUser: null });
       toast.success("Logout completed successfully!");
+      get().disconnectSocket();
     } catch (error) {
       if (error instanceof AxiosError) {
         if (
